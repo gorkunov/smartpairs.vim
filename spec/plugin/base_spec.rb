@@ -5,7 +5,8 @@ describe "presets testing:" do
 
 
   PRESETS.each do |test_dir|
-    specify "#{File.basename(test_dir)}" do
+    name = File.basename(test_dir)
+    specify "#{name}" do
       # read in
       set_file_contents File.read(test_dir + '/in') 
       # apply commands

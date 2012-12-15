@@ -18,12 +18,21 @@ module Support
       VIM.command cmd
     end
 
+    def nextpairs
+      cmd = "NextPairs"
+      VIM.command cmd
+    end
+
     def apply_commands(commands)
       commands.split("\n").each do |command|
         if /SmartPairs(I|A)\s(v|c|d|y)/ =~ command
           smartpairs $2, $1
+        elsif /NextPairsA?/ =~ command
+          nextpairs
+        elsif /sleep/ =~ command
+          sleep 20
         else
-          VIM.normal command
+          VIM.type command
         end
       end
       VIM.write

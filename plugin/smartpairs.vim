@@ -91,7 +91,7 @@ function! s:ApplyPairs()
     if type(stop) == type({}) && (has_key(s:pairs, stop.symbol) || stop.symbol == 't')
         call remove(s:stops, 0)
         execute "normal! " . stop.position[0] . "G" . stop.position[1] . "|"
-        execute "normal! " . s:type . s:mod . stop.symbol
+        execute "normal! \e" . s:type . s:mod . stop.symbol
     elseif s:line > 1
         let s:line = s:line - 1
         call s:SmartPairs(s:type, s:mod, s:line)
@@ -104,13 +104,14 @@ endfunction
 
 command! -nargs=1 SmartPairsI call s:SmartPairs(<f-args>, 'i')
 command! -nargs=1 SmartPairsA call s:SmartPairs(<f-args>, 'a')
+command! NextPairs call s:NextPairs()
 
-nnoremap <silent> viv :call <SID>SmartPairs('v', 'i')<CR>
-nnoremap <silent> vav :call <SID>SmartPairs('v', 'a')<CR>
-nnoremap <silent> div :call <SID>SmartPairs('d', 'i')<CR>
-nnoremap <silent> dav :call <SID>SmartPairs('d', 'a')<CR>
-nnoremap <silent> civ :call <SID>SmartPairs('c', 'i')<CR>a
-nnoremap <silent> cav :call <SID>SmartPairs('c', 'a')<CR>a
-nnoremap <silent> yiv :call <SID>SmartPairs('y', 'i')<CR>
-nnoremap <silent> yav :call <SID>SmartPairs('y', 'a')<CR>
-vnoremap <silent> v <ESC>:call <SID>NextPairs()<CR>
+"nnoremap <silent> viv :call <SID>SmartPairs('v', 'i')<CR>
+"nnoremap <silent> vav :call <SID>SmartPairs('v', 'a')<CR>
+"nnoremap <silent> div :call <SID>SmartPairs('d', 'i')<CR>
+"nnoremap <silent> dav :call <SID>SmartPairs('d', 'a')<CR>
+"nnoremap <silent> civ :call <SID>SmartPairs('c', 'i')<CR>a
+"nnoremap <silent> cav :call <SID>SmartPairs('c', 'a')<CR>a
+"nnoremap <silent> yiv :call <SID>SmartPairs('y', 'i')<CR>
+"nnoremap <silent> yav :call <SID>SmartPairs('y', 'a')<CR>
+"vnoremap <silent> v   :call <SID>NextPairs()<CR>
