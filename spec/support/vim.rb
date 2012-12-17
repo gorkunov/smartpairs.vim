@@ -31,6 +31,8 @@ module Support
           nextpairs
         elsif /sleep/ =~ command
           sleep 20
+        elsif /^#/ =~ command
+          #skip comments
         else
           VIM.type command
         end

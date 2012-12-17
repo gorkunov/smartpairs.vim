@@ -32,6 +32,18 @@
 "
 "
 let s:pairs = { '<' : '>', '"': '"', "'": "'", '`': '`', '(': ')', '[': ']', '{': '}' }
+function! s:CountChar(str, char)
+    let charcount = 0
+    let pos = 0
+    while pos < len(a:str)
+        if a:str[pos] == a:char
+            let charcount = charcount + 1
+        endif
+        let pos = pos + 1
+    endwhile
+    return charcount
+endfunction
+
 function! s:SmartPairs(type, mod, ...)
     let all = keys(s:pairs) + values(s:pairs)
     if a:0 > 0
@@ -57,8 +69,7 @@ function! s:SmartPairs(type, mod, ...)
             if index(['"', "'", '`'], ch) < 0
                 call remove(s:stops, -1)
             else
-                let tmp = substitute(str[:cur - 1], '[^'.ch.']*\('.ch.'\)*[^'.ch.']*', '\1', 'g')
-                if len(tmp) % 2 == 0
+                if s:CountChar(str[:cur - 1], ch) % 2 == 0
                     call remove(s:stops, -1)
                 else
                     call add(s:stops, { 'symbol': ch, 'position': [s:line, cur + 1] })
@@ -95,6 +106,8 @@ function! s:ApplyPairs()
     elseif s:line > 1
         let s:line = s:line - 1
         call s:SmartPairs(s:type, s:mod, s:line)
+    else
+        execute "normal! \egv"
     endif
 endfunction
 
@@ -106,12 +119,12 @@ command! -nargs=1 SmartPairsI call s:SmartPairs(<f-args>, 'i')
 command! -nargs=1 SmartPairsA call s:SmartPairs(<f-args>, 'a')
 command! NextPairs call s:NextPairs()
 
-"nnoremap <silent> viv :call <SID>SmartPairs('v', 'i')<CR>
-"nnoremap <silent> vav :call <SID>SmartPairs('v', 'a')<CR>
-"nnoremap <silent> div :call <SID>SmartPairs('d', 'i')<CR>
-"nnoremap <silent> dav :call <SID>SmartPairs('d', 'a')<CR>
-"nnoremap <silent> civ :call <SID>SmartPairs('c', 'i')<CR>a
-"nnoremap <silent> cav :call <SID>SmartPairs('c', 'a')<CR>a
-"nnoremap <silent> yiv :call <SID>SmartPairs('y', 'i')<CR>
-"nnoremap <silent> yav :call <SID>SmartPairs('y', 'a')<CR>
-"vnoremap <silent> v   :call <SID>NextPairs()<CR>
+nnoremap <silent> viv :call <SID>SmartPairs('v', 'i')<CR>
+nnoremap <silent> vav :call <SID>SmartPairs('v', 'a')<CR>
+nnoremap <silent> div :call <SID>SmartPairs('d', 'i')<CR>
+nnoremap <silent> dav :call <SID>SmartPairs('d', 'a')<CR>
+nnoremap <silent> civ :call <SID>SmartPairs('c', 'i')<CR>a
+nnoremap <silent> cav :call <SID>SmartPairs('c', 'a')<CR>a
+nnoremap <silent> yiv :call <SID>SmartPairs('y', 'i')<CR>
+nnoremap <silent> yav :call <SID>SmartPairs('y', 'a')<CR>
+vnoremap <silent> v   :call <SID>NextPairs()<CR>
