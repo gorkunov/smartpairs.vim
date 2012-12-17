@@ -2,7 +2,7 @@ require 'tmpdir'
 require 'vimrunner'
 require_relative './support/vim'
 
-PRESETS = Dir.glob([File.expand_path('.'), 'spec/tests', '**'].join('/'))
+PRESETS = Dir.glob([File.expand_path('.'), 'spec/tests', '**'].join('/')).sort
 
 RSpec.configure do |config|
   config.include Support::Vim
