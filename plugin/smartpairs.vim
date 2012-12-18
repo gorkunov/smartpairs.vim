@@ -1,36 +1,40 @@
 "vim: set tabstop=4 softtabstop=4 shiftwidth=4 expandtab
 
-" Avoid installing twice
-"if exists('g:loaded_smartpairs')
-    "finish
-"endif
-"let g:loaded_smartpairs = 1
+"avoid installing twice
+if exists('g:loaded_smartpairs')
+    finish
+endif
+"check if debugging is turned off
+if !exists('g:smartpairs_debug')
+    let g:loaded_smartpairs = 1
+end
 
-let s:pairs = { '<' : '>', '"': '"', "'": "'", '`': '`', '(': ')', '[': ']', '{': '}' }
-function! s:CountChar(str, char)
-    let charcount = 0
-    let pos = 0
-    while pos < len(a:str)
-        if a:str[pos] == a:char
-            let charcount = charcount + 1
-        endif
-        let pos = pos + 1
-    endwhile
-    return charcount
+"define all searchable symbols aka *pairs*
+let s:targets = { 
+            \'<' : '>', 
+            \'"' : '"', 
+            \"'" : "'", 
+            \'`' : '`', 
+            \'(' : ')', 
+            \'[' : ']', 
+            \'{' : '}' }
+
+let s:all_targets = keys(s:targets) + values(s:targets)
+
+"split to (un)pair symbols
+let s:pair_targets = ['<', '{', '[', '(']
+let s:unpair_targets = ['"', "'", '`']
+
+
+function! s:AddToStack(target, position)
+    return add(s:stops, { 'symbol': a:target, 'position': [s:line, a:position] })
 endfunction
 
-function! s:Placeholder(str)
-    let out = ''
-    let i = 0
-    while i < strlen(a:str)
-        let out .= '_'
-        let i += 1
-    endwhile
-    return out
+function! s:RemoveLastFromStack()
+    call remove(s:stops, -1)
 endfunction
 
 function! s:SmartPairs(type, mod, ...)
-    let all = keys(s:pairs) + values(s:pairs)
     if a:0 > 0
         let str = getline(a:1)
         let cur = len(str)
@@ -40,51 +44,51 @@ function! s:SmartPairs(type, mod, ...)
         let s:line = line('.')
         let s:type = a:type
         let s:mod  = a:mod
+        "stack with current targets
         let s:stops = []
     endif
     let str = str[:cur - 1]
+    " remove all escaped symbols from line
     let str = substitute(str, '\\.', '__', 'g')
-    for ch in ['"', "'", '`']
-        let str = substitute(str, '\('.ch.'.\{-}'.ch.'\)', '\=s:Placeholder(submatch(1))', 'g')
+    " replace all closed substring from line e.g: "'foo' 'bar'" -> "_____ _____"
+    " apply this only for unpair targets: ' " `
+    " because pair targets have complicated logic
+    for ch in s:unpair_targets
+        let str = substitute(str, '\('.ch.'.\{-}'.ch.'\)', '\=repeat("_", strlen(submatch(1)))', 'g')
     endfor
+    " and now process prepared line 
     while cur >= 0
         let cur = cur - 1
         let ch = str[cur]
-        if index(all, ch) < 0
+        " skip if current char isn't a target
+        if index(s:all_targets, ch) < 0
             continue
         endif
+        " get last found target from stack
         let lastunpair = len(s:stops) > 0 ? s:stops[-1].symbol : ''
 
-        if lastunpair != '' && lastunpair == get(s:pairs, ch, '')
-            if index(['"', "'", '`'], ch) < 0
-                call remove(s:stops, -1)
-            else
-                if s:CountChar(str[:cur - 1], ch) % 2 == 0
-                    call remove(s:stops, -1)
-                else
-                    call add(s:stops, { 'symbol': ch, 'position': [s:line, cur + 1] })
-                endif
-            endif
-            " tags workaround
+        " if current symbol is pair for last found target e.g. [ for ]
+        if lastunpair != '' && lastunpair == get(s:targets, ch, '')
+            " remove last target from stack
+            call s:RemoveLastFromStack()
+            " and apply tags workaround
             if ch == '<'
                 " closed tag
                 if str[cur + 1] == '/' 
-                    call add(s:stops, { 'symbol': 'c', 'position': [s:line, cur + 1] })
+                    call s:AddToStack('c', cur + 1)
                 else
                     if len(s:stops) && s:stops[-1].symbol == 'c'
-                        call remove(s:stops, -1)
+                        call s:RemoveLastFromStack()
                     else
-                        call add(s:stops, { 'symbol': 't', 'position': [s:line, cur + 1] })
+                        call s:AddToStack('t', cur + 1)
                     endif
                 endif
             endif
         else
-            if index(['<', '>'], lastunpair) > -1 && 
-                        \ (index(['{', '[', '('], ch) > -1 || (index(['"', "'", '`'], ch) > -1 && s:CountChar(str[:cur - 1], ch) % 2 == 0))
-
-                call remove(s:stops, -1)
+            if lastunpair == '<' || lastunpair == '>'
+                call s:RemoveLastFromStack()
             endif
-            call add(s:stops, { 'symbol': ch, 'position': [s:line, cur + 1] })
+            call s:AddToStack(ch, cur + 1)
         endif
     endwhile
     call s:ApplyPairs()
@@ -93,7 +97,7 @@ endfunction
 function! s:ApplyPairs()
     let stop = get(s:stops, 0)
 
-    if type(stop) == type({}) && (has_key(s:pairs, stop.symbol) || stop.symbol == 't')
+    if type(stop) == type({}) && (has_key(s:targets, stop.symbol) || stop.symbol == 't')
         call remove(s:stops, 0)
         execute "normal! " . stop.position[0] . "G" . stop.position[1] . "|"
         execute "normal! \e" . s:type . s:mod . stop.symbol
