@@ -1,36 +1,11 @@
-" About:
-"
-"  How often do you forget which keys you should use to select/modify strings
-"  in the ' or " or in other pairs? I often use viw/ciw instead of vi'/vi" for
-"  the first time because it easier for my fingers (but after that I remember
-"  about vi'). This script allows you always use the same shortcut for all
-"  cases. When you want to select string in the ' use viv. Do you want to
-"  select all in the '()'? Use viv. All in the '[]'? Use viv.
-"
-" How it works:
-"
-"  Script searches first unpair symbol from the left of the current cursor
-"  position and than runs target command with this symbol. You can use i or a
-"  modifiers for commands too.
-"
-" Available commands:
-"
-"  vi* -> viv
-"  va* -> vav
-"  ci* -> civ
-"  ca* -> cav
-"  di* -> div
-"  da* -> dav
-"  ya* -> yiv
-"  ya* -> yav
-"  Where * is in <, >, ", ', `, (, ), [, ], {, } or t as tag
-"
-"  NOTE: After v* commands you also can press v again and script extends selection
-"  to the next pairs.
-"   
-" Author: @gorkunov (alex.g@cloudcastlegroup.com)
-"
-"
+"vim: set tabstop=4 softtabstop=4 shiftwidth=4 expandtab
+
+" Avoid installing twice
+"if exists('g:loaded_smartpairs')
+    "finish
+"endif
+"let g:loaded_smartpairs = 1
+
 let s:pairs = { '<' : '>', '"': '"', "'": "'", '`': '`', '(': ')', '[': ']', '{': '}' }
 function! s:CountChar(str, char)
     let charcount = 0
@@ -64,8 +39,9 @@ function! s:SmartPairs(type, mod, ...)
         if index(all, ch) < 0
             continue
         endif
+        let lastunpair = len(s:stops) > 0 ? s:stops[-1].symbol : ''
 
-        if len(s:stops) && get(s:pairs, ch, '') == s:stops[-1].symbol
+        if lastunpair != '' && lastunpair == get(s:pairs, ch, '')
             if index(['"', "'", '`'], ch) < 0
                 call remove(s:stops, -1)
             else
@@ -89,9 +65,13 @@ function! s:SmartPairs(type, mod, ...)
                 endif
             endif
         else
+            if lastunpair == '>' && 
+                        \ (index(['{', '[', '('], ch) > -1 || (index(['"', "'", '`'], ch) > -1 && s:CountChar(str[:cur - 1], ch) % 2 == 0))
+
+                call remove(s:stops, -1)
+            endif
             call add(s:stops, { 'symbol': ch, 'position': [s:line, cur + 1] })
         endif
-        "echo s:stops
     endwhile
     call s:ApplyPairs()
 endfunction
