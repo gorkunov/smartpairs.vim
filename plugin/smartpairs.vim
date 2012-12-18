@@ -19,20 +19,34 @@ function! s:CountChar(str, char)
     return charcount
 endfunction
 
+function! s:Placeholder(str)
+    let out = ''
+    let i = 0
+    while i < strlen(a:str)
+        let out .= '_'
+        let i += 1
+    endwhile
+    return out
+endfunction
+
 function! s:SmartPairs(type, mod, ...)
     let all = keys(s:pairs) + values(s:pairs)
     if a:0 > 0
         let str = getline(a:1)
         let cur = len(str)
     else
-        let str    = getline('.')
         let cur    = col('.') - 1
+        let str    = getline('.')
         let s:line = line('.')
         let s:type = a:type
         let s:mod  = a:mod
         let s:stops = []
     endif
+    let str = str[:cur - 1]
     let str = substitute(str, '\\.', '__', 'g')
+    for ch in ['"', "'", '`']
+        let str = substitute(str, '\('.ch.'.\{-}'.ch.'\)', '\=s:Placeholder(submatch(1))', 'g')
+    endfor
     while cur >= 0
         let cur = cur - 1
         let ch = str[cur]
@@ -65,7 +79,7 @@ function! s:SmartPairs(type, mod, ...)
                 endif
             endif
         else
-            if lastunpair == '>' && 
+            if index(['<', '>'], lastunpair) > -1 && 
                         \ (index(['{', '[', '('], ch) > -1 || (index(['"', "'", '`'], ch) > -1 && s:CountChar(str[:cur - 1], ch) % 2 == 0))
 
                 call remove(s:stops, -1)
