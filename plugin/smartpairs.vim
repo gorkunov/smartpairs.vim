@@ -1,9 +1,9 @@
 "vim: set tabstop=4 softtabstop=4 shiftwidth=4 expandtab
 
 "avoid installing twice
-if exists('g:loaded_smartpairs')
-    finish
-endif
+"if exists('g:loaded_smartpairs')
+    "finish
+"endif
 "check if debugging is turned off
 if !exists('g:smartpairs_debug')
     let g:loaded_smartpairs = 1
@@ -32,6 +32,15 @@ endfunction
 
 function! s:RemoveLastFromStack()
     call remove(s:stops, -1)
+endfunction
+
+function! s:GetSelection() 
+    let old_a=@a
+    normal! "ay
+    let text = @a
+    let @a=old_a
+    execute "normal! \egv"
+    return text
 endfunction
 
 function! s:SmartPairs(type, mod, ...)
@@ -94,17 +103,26 @@ function! s:SmartPairs(type, mod, ...)
     call s:ApplyPairs()
 endfunction
 
+let s:sreverted = 0
 function! s:ApplyPairs()
     let stop = get(s:stops, 0)
-
+ 
     if type(stop) == type({}) && (has_key(s:targets, stop.symbol) || stop.symbol == 't')
         call remove(s:stops, 0)
+        let prev_position = { 'line': line('.'), 'col': col('.') }
         execute "normal! " . stop.position[0] . "G" . stop.position[1] . "|"
         execute "normal! \e" . s:type . s:mod . stop.symbol
+        let selection = s:GetSelection()
+        let s:sreverted = 0
+        if strlen(selection) == 1 && selection == stop.symbol
+            let s:sreverted = 1
+            execute "normal! \e" . prev_position.line . "G" . prev_position.col . "|"
+            call s:ApplyPairs()
+        endif
     elseif s:line > 1
         let s:line = s:line - 1
         call s:SmartPairs(s:type, s:mod, s:line)
-    else
+    elseif s:type == 'v' && s:sreverted == 0
         execute "normal! \egv"
     endif
 endfunction
