@@ -106,16 +106,22 @@ endfunction
 let s:sreverted = 0
 function! s:ApplyPairs()
     let stop = get(s:stops, 0)
+    let line = getline('.')
  
     if type(stop) == type({}) && (has_key(s:targets, stop.symbol) || stop.symbol == 't')
         call remove(s:stops, 0)
         let prev_position = { 'line': line('.'), 'col': col('.') }
         execute "normal! " . stop.position[0] . "G" . stop.position[1] . "|"
         execute "normal! \e" . s:type . s:mod . stop.symbol
-        let selection = s:GetSelection()
-        let s:sreverted = 0
-        if strlen(selection) == 1 && selection == stop.symbol
-            let s:sreverted = 1
+        if s:type == 'v'
+            let selection = s:GetSelection()
+            let s:sreverted = 0
+            if strlen(selection) == 1 && selection == stop.symbol
+                let s:sreverted = 1
+                execute "normal! \e" . prev_position.line . "G" . prev_position.col . "|"
+                call s:ApplyPairs()
+            endif
+        elseif line == getline('.')
             execute "normal! \e" . prev_position.line . "G" . prev_position.col . "|"
             call s:ApplyPairs()
         endif
