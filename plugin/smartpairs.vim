@@ -9,6 +9,10 @@ if !exists('g:smartpairs_debug')
     let g:loaded_smartpairs = 1
 end
 
+if !exists('g:smartpairs_maxdepth')
+    let g:smartpairs_maxdepth = 20
+end
+
 "define all searchable symbols aka *pairs*
 let s:targets = { 
             \'<' : '>', 
@@ -51,6 +55,7 @@ function! s:SmartPairs(type, mod, ...)
         let cur    = col('.') - 1
         let str    = getline('.')
         let s:line = line('.')
+        let s:start_line = s:line
         let s:type = a:type
         let s:mod  = a:mod
         "stack with current targets
@@ -125,15 +130,16 @@ function! s:ApplyPairs()
             execute "normal! \e" . prev_position.line . "G" . prev_position.col . "|"
             call s:ApplyPairs()
         endif
-    elseif s:line > 1
+    elseif s:line > 1 && s:start_line - s:line < g:smartpairs_maxdepth
         let s:line = s:line - 1
         call s:SmartPairs(s:type, s:mod, s:line)
     elseif s:type == 'v' && s:sreverted == 0
-        execute "normal! \egv"
+        "execute "normal! \egv"
     endif
 endfunction
 
 function! s:NextPairs()
+    execute "normal! \egv"
     call s:ApplyPairs()
 endfunction
 
