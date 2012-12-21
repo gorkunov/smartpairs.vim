@@ -99,16 +99,12 @@ function! s:SmartPairs(type, mod, ...)
                 endif
             endif
         else
-            if lastunpair == '<' || lastunpair == '>'
-                call s:RemoveLastFromStack()
-            endif
             call s:AddToStack(ch, cur + 1)
         endif
     endwhile
     call s:ApplyPairs()
 endfunction
 
-let s:sreverted = 0
 function! s:ApplyPairs()
     let stop = get(s:stops, 0)
     let line = getline('.')
@@ -120,9 +116,7 @@ function! s:ApplyPairs()
         execute "normal! \e" . s:type . s:mod . stop.symbol
         if s:type == 'v'
             let selection = s:GetSelection()
-            let s:sreverted = 0
             if strlen(selection) == 1 && selection == stop.symbol
-                let s:sreverted = 1
                 execute "normal! \e" . prev_position.line . "G" . prev_position.col . "|"
                 call s:ApplyPairs()
             endif
@@ -133,8 +127,9 @@ function! s:ApplyPairs()
     elseif s:line > 1 && s:start_line - s:line < g:smartpairs_maxdepth
         let s:line = s:line - 1
         call s:SmartPairs(s:type, s:mod, s:line)
-    elseif s:type == 'v' && s:sreverted == 0
-        "execute "normal! \egv"
+    elseif len(s:stops) > 0
+        call remove(s:stops, 0)
+        call s:ApplyPairs()
     endif
 endfunction
 
