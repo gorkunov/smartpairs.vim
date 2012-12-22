@@ -60,15 +60,6 @@ function! s:GetFromStack()
     end
 endfunction
 
-function! s:GetSelection() 
-    let old_a=@a
-    normal! "ay
-    let text = @a
-    let @a=old_a
-    execute "normal! \egv"
-    return text
-endfunction
-
 function! s:SmartPairs(type, mod, ...)
     if a:0 > 0
         let str = getline(a:1)
@@ -152,22 +143,18 @@ endfunction
 
 function! s:ApplyPairs()
     let stop = s:GetFromStack()
-    let line = getline('.')
  
     if type(stop) == type({}) && (has_key(s:targets, stop.symbol) || stop.symbol == 't')
         call s:RemoveLastFromStack()
         let prev_position = { 'line': line('.'), 'col': col('.') }
+        let line = getline(stop.position[0])
         execute "normal! " . stop.position[0] . "G" . stop.position[1] . "|"
         execute "normal! \e" . s:type . s:mod . stop.symbol
-        if s:type == 'v'
-            let selection = s:GetSelection()
-            if strlen(selection) == 1 && stop.position[1] == col('.')
-                execute "normal! \e" . prev_position.line . "G" . prev_position.col . "|"
-                call s:ApplyPairs()
-            endif
-        elseif line == getline('.')
+        if  stop.position[0] == line('.') && stop.position[1] == col('.') && line == getline('.')
             execute "normal! \e" . prev_position.line . "G" . prev_position.col . "|"
             call s:ApplyPairs()
+        else
+            let s:laststop = stop
         endif
     elseif s:line > 1 && s:start_line - s:line < g:smartpairs_maxdepth
         let s:line = s:line - 1
@@ -179,7 +166,9 @@ function! s:ApplyPairs()
 endfunction
 
 function! s:NextPairs()
-    execute "normal! \egv"
+    let stop = s:laststop
+    execute "normal! " . stop.position[0] . "G" . stop.position[1] . "|"
+    execute "normal! \ev" . s:mod . stop.symbol
     call s:ApplyPairs()
 endfunction
 
