@@ -130,9 +130,9 @@ function! s:SmartPairs(type, mod, ...)
         endwhile
     endfor
     " relpace matched tags
-    " replace all <.../> e.g. <br/> ('p' is '/>' )
+    " replace all <.../> e.g. <br/> ('b' is '/>' )
     while 1
-        let str = substitute(s:stops_str, '\(<.\{-}/>\)', '\=repeat("_", strlen(submatch(1)))', 'g')
+        let str = substitute(s:stops_str, '\(<.\{-}b\)', '\=repeat("_", strlen(submatch(1)))', 'g')
         if str == s:stops_str
             break
         else
