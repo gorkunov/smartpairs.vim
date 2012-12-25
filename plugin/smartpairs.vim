@@ -156,28 +156,31 @@ function! s:SmartPairs(type, mod, ...)
 endfunction
 
 function! s:ApplyPairs()
-    let stop = s:GetFromStack()
- 
-    if type(stop) == type({}) && (has_key(s:targets, stop.symbol) || stop.symbol == 't')
-        call s:RemoveLastFromStack()
-        let prev_position = { 'line': line('.'), 'col': col('.') }
-        let line = getline(stop.position[0])
-        execute "normal! " . stop.position[0] . "G" . stop.position[1] . "|"
-        execute "normal! \e" . s:type . s:mod . stop.symbol
-        if  stop.position[0] == line('.') && stop.position[1] == col('.') && line == getline('.')
-            execute "normal! \e" . prev_position.line . "G" . prev_position.col . "|"
+    try
+        let stop = s:GetFromStack()
+     
+        if type(stop) == type({}) && (has_key(s:targets, stop.symbol) || stop.symbol == 't')
+            call s:RemoveLastFromStack()
+            let prev_position = { 'line': line('.'), 'col': col('.') }
+            let line = getline(stop.position[0])
+            execute "normal! " . stop.position[0] . "G" . stop.position[1] . "|"
+            execute "normal! \e" . s:type . s:mod . stop.symbol
+            if  stop.position[0] == line('.') && stop.position[1] == col('.') && line == getline('.')
+                execute "normal! \e" . prev_position.line . "G" . prev_position.col . "|"
+                call s:ApplyPairs()
+            else
+                let s:laststop = stop
+                let s:lastselected = s:GetSelection()
+            endif
+        elseif s:line > 1 && s:start_line - s:line < g:smartpairs_maxdepth
+            let s:line = s:line - 1
+            call s:SmartPairs(s:type, s:mod, s:line)
+        elseif len(s:stops) > 0
+            call s:RemoveLastFromStack()
             call s:ApplyPairs()
-        else
-            let s:laststop = stop
-            let s:lastselected = s:GetSelection()
         endif
-    elseif s:line > 1 && s:start_line - s:line < g:smartpairs_maxdepth
-        let s:line = s:line - 1
-        call s:SmartPairs(s:type, s:mod, s:line)
-    elseif len(s:stops) > 0
-        call s:RemoveLastFromStack()
-        call s:ApplyPairs()
-    endif
+    catch
+    endtry
 endfunction
 
 function! s:NextPairs()
