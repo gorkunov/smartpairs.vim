@@ -25,6 +25,20 @@ let s:targets = {
 
 let s:all_targets = keys(s:targets) + values(s:targets)
 
+"deluxe magic: use this to get selected text but keep safe all registers
+function! s:GetSelection()
+    try
+        let cb_save = &clipboard
+        set clipboard-=unnamed clipboard-=unnamedplus
+        let tmp = @@
+        execute "normal! \egv\"\"y"
+        return @@
+    finally
+        let @@ = tmp
+        let &clipboard = cb_save
+        execute "normal! \egv"
+    endtry
+endfunction
 
 function! s:InsertToStack(target, position)
     let s:stops_str = a:target . s:stops_str
@@ -155,6 +169,7 @@ function! s:ApplyPairs()
             call s:ApplyPairs()
         else
             let s:laststop = stop
+            let s:lastselected = s:GetSelection()
         endif
     elseif s:line > 1 && s:start_line - s:line < g:smartpairs_maxdepth
         let s:line = s:line - 1
@@ -166,22 +181,28 @@ function! s:ApplyPairs()
 endfunction
 
 function! s:NextPairs()
-    let stop = s:laststop
-    execute "normal! " . stop.position[0] . "G" . stop.position[1] . "|"
-    execute "normal! \ev" . s:mod . stop.symbol
-    call s:ApplyPairs()
+    let selected = s:GetSelection()
+
+    if exists('s:lastselected') && s:lastselected == selected
+        let stop = s:laststop
+        execute "normal! " . stop.position[0] . "G" . stop.position[1] . "|"
+        execute "normal! \ev" . s:mod . stop.symbol
+        call s:ApplyPairs()
+    else
+        call s:SmartPairs('v', 'i')
+    endif
 endfunction
 
 command! -nargs=1 SmartPairsI call s:SmartPairs(<f-args>, 'i')
 command! -nargs=1 SmartPairsA call s:SmartPairs(<f-args>, 'a')
 command! NextPairs call s:NextPairs()
 
-nnoremap <silent> viv :call <SID>SmartPairs('v', 'i')<CR>
-nnoremap <silent> vav :call <SID>SmartPairs('v', 'a')<CR>
-nnoremap <silent> div :call <SID>SmartPairs('d', 'i')<CR>
-nnoremap <silent> dav :call <SID>SmartPairs('d', 'a')<CR>
-nnoremap <silent> civ :call <SID>SmartPairs('c', 'i')<CR>a
-nnoremap <silent> cav :call <SID>SmartPairs('c', 'a')<CR>a
-nnoremap <silent> yiv :call <SID>SmartPairs('y', 'i')<CR>
-nnoremap <silent> yav :call <SID>SmartPairs('y', 'a')<CR>
-vnoremap <silent> v   :call <SID>NextPairs()<CR>
+nnoremap <silent> viv :<C-U>call <SID>SmartPairs('v', 'i')<CR>
+nnoremap <silent> vav :<C-U>call <SID>SmartPairs('v', 'a')<CR>
+nnoremap <silent> div :<C-U>call <SID>SmartPairs('d', 'i')<CR>
+nnoremap <silent> dav :<C-U>call <SID>SmartPairs('d', 'a')<CR>
+nnoremap <silent> civ :<C-U>call <SID>SmartPairs('c', 'i')<CR>a
+nnoremap <silent> cav :<C-U>call <SID>SmartPairs('c', 'a')<CR>a
+nnoremap <silent> yiv :<C-U>call <SID>SmartPairs('y', 'i')<CR>
+nnoremap <silent> yav :<C-U>call <SID>SmartPairs('y', 'a')<CR>
+vnoremap <silent> v   :<C-U>call <SID>NextPairs()<CR>

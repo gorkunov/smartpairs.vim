@@ -6,7 +6,7 @@ describe "presets testing:" do
 
   PRESETS.each do |test_dir|
     name = File.basename(test_dir)
-    #next if name != '022'
+    #next if name != '039'
     specify "#{name}" do
       # read in
       set_file_contents File.read(test_dir + '/in') 
