@@ -1,11 +1,11 @@
 module Support
   module Vim
     FILENAME = 'text.txt'
-    
+
     def set_file_contents(string)
       string = normalize_string(string)
       File.open(FILENAME, 'w') { |f| f.write(string) }
-      VIM.edit FILENAME
+      VIM.instance.edit FILENAME
     end
 
     def assert_file_contents(string)
@@ -15,12 +15,12 @@ module Support
 
     def smartpairs(type, mod)
       cmd = "SmartPairs#{mod.upcase} #{type}"
-      VIM.command cmd
+      VIM.instance.command cmd
     end
 
     def nextpairs
       cmd = "NextPairs"
-      VIM.command cmd
+      VIM.instance.command cmd
     end
 
     def apply_commands(commands)
@@ -34,10 +34,10 @@ module Support
         elsif /^#/ =~ command
           #skip comments
         else
-          VIM.type command
+          VIM.instance.type command
         end
       end
-      VIM.write
+      VIM.instance.write
     end
 
     private
