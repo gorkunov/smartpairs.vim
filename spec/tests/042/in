@@ -1,0 +1,12 @@
+<param name="bgcolor" value="#{bgcolor}"/>
+<embed src="/flash/clippy.swf"
+       width="110"
+       height="14"
+       name="clippy"
+       quality="high"
+       allowScriptAccess="always"
+       type="application/x-shockwave-flash"
+       pluginspage="http://www.macromedia.com/go/getflashplayer"
+       FlashVars="text=#{text}"
+       bgcolor="#{bgcolor}"
+/>
