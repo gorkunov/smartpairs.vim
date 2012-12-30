@@ -22,7 +22,7 @@ If you already have pathogen then put smartpairs into ~/.vim/bundle like this:
     cd ~/.vim/bundle
     git clone https://github.com/gorkunov/smartpairs.vim.git
 
-Available commands
+Mappings
 ------------------
 By default smartpairs focuses on selection command but it also supports delete/change/yank.
 
@@ -38,24 +38,31 @@ Commands list:
     ya* -> yav
     Where * is in <, >, ", ', `, (, ), [, ], {, } or t as tag
     
-After v\* commands you also can press v again and script extends selection
-to the next pairs.
+After v\* commands you can press v again and selection will be extended to 
+the next pairs.
 
 Advanced configuration
 ----------------------
 For changing smartpairs keys binding add those lines to your .vimrc file:
 
 ```viml
-"default is 'v', use it when you run commands like viv (after changes vio)
-let g:smartpairs_key = 'o'
+"Key for running smartpairs in all modes (select/delete/change/yank)
+"default is 'v'
+let g:smartpairs_key = 'v'
 
-"default is 'v', use it in the selection mode for extending selection
+"Key for running smartpairs in the selection mode 
+"(extend current selection to the next pair)
+"default is 'v'
 let g:smartpairs_nextpairs_key = 'v'
 
-"default is 'i', use it in the selection mode for exteding selection with IN-mod (like vi")
+"Key for running smartpairs in the selection mode
+"for extending selection with IN-mod (like vi")
+"default is 'i'
 let g:smartpairs_nextpairs_key_i = 'i'
 
-"default is 'a', use it in the selection mode for exteding selection with ABOVE-mod (like va")
+"Key for running smartpairs in the selection mode 
+"for extending selection with ABOVE-mod (like va")
+"default is 'a'
 let g:smartpairs_nextpairs_key_a = 'a'
 ```
 
