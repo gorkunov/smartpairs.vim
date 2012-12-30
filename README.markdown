@@ -5,6 +5,7 @@ Now you can use only one shortcut for all typical combinations. Even if you've a
 selected something you can easily fix selection by using smartpairs.vim. 
 
 This screenshot describes how it works:
+
 ![smartpairs.vim](https://github.com/gorkunov/smartpairs.vim/raw/master/_assets/smartpairs.vim.gif)
 
 Script searches first unpair symbol from the left of the current cursor
@@ -12,7 +13,11 @@ position and then runs target command with this symbol.
 
 Available commands
 ------------------
+By default smartpairs.vim focuses on selection command but it also supports other commands: delete/change/yank.
 
+Commands list:
+
+```viml
   vi* -> viv
   va* -> vav
   ci* -> civ
@@ -25,6 +30,7 @@ Available commands
 
   NOTE: After v\* commands you also can press v again and script extends selection
   to the next pairs.
+```
 
 Installation
 ------------
