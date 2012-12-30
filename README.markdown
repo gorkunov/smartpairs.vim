@@ -43,6 +43,21 @@ to the next pairs.
 
 Advanced configuration
 ----------------------
+For changing smartpairs keys binding add those lines to your .vimrc file:
+
+```viml
+    "default is 'v', use it when you run commands like viv (after changes vio)
+    let g:smartpairs_key = 'o'
+
+    "default is 'v', use it in the selection mode for extending selection
+    let g:smartpairs_nextpairs_key = 'v'
+
+    "default is 'i', use it in the selection mode for exteding selection with IN-mod (like vi")
+    let g:smartpairs_nextpairs_key_i = 'i'
+
+    "default is 'a', use it in the selection mode for exteding selection with ABOVE-mod (like va")
+    let g:smartpairs_nextpairs_key_a = 'a'
+```
 
 Build status
 ------------
