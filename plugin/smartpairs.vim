@@ -1,9 +1,14 @@
+"smartpairs.vim - Fantastic Vim selections
+"
+"Author: Alex Gorkunov <alex.gorkunov@cloudcastlegroup.com>
+"Source repository: https://github.com/gorkunov/smartpairs.vim
+"
 "vim: set tabstop=4 softtabstop=4 shiftwidth=4 expandtab
 
 "avoid installing twice
-"if exists('g:loaded_smartpairs')
-    "finish
-"endif
+if exists('g:loaded_smartpairs')
+    finish
+endif
 "check if debugging is turned off
 if !exists('g:smartpairs_debug')
     let g:loaded_smartpairs = 1
@@ -23,6 +28,10 @@ let s:targets = {
             \'[' : ']', 
             \'{' : '}' }
 
+"Also we use specal markers for several symbols combination:
+" '/>' -> 'b'
+" '</' -> 'c'
+
 let s:all_targets = keys(s:targets) + values(s:targets)
 
 "deluxe magic: use this to get selected text but keep safe all registers
@@ -40,24 +49,31 @@ function! s:GetSelection()
     endtry
 endfunction
 
-function! s:InsertToStack(target, position)
+"stack pairs functions
+"push new symbol to stack
+function! s:InsertToStack(target, col)
     let s:stops_str = a:target . s:stops_str
-    call insert(s:stops, { 'symbol': a:target, 'position': [s:line, a:position] })
+    call insert(s:stops, { 'symbol': a:target, 'line': s:line, 'col': a:col })
 endfunction
 
+"remove last symbol from stack
 function! s:RemoveLastFromStack()
     let s:stops_str = s:stops_str[:-2]
     call remove(s:stops, -1)
 endfunction
 
+"get first unpair symbol from stack
+"warning: this function also removes unimportant symbols from stack
 function! s:GetFromStack()
     if strlen(s:stops_str) > 0
         let ch = s:stops_str[strlen(s:stops_str) - 1]
+        "remove useless symbol from stack
         if ch == "_"
             call s:RemoveLastFromStack()
             let stop = s:GetFromStack()
         else
             let stop = s:stops[-1]
+            "reverse symbol converting (see above)
             if ch == 'c'
                 let stop.symbol = '<'
             elseif ch == 'b'
@@ -74,6 +90,31 @@ function! s:GetFromStack()
     end
 endfunction
 
+"replace matched text to _ e.g.
+"((((abc)))) -> ___________
+function! s:ReplaceAll(source, regex)
+    let result = a:source
+    while 1
+        let str = substitute(result, a:regex, '\=repeat("_", strlen(submatch(1)))', 'g')
+        if str == result
+            break
+        endif
+        let result = str
+    endwhile
+    return result
+endfunction
+
+"replace cursor position to new position
+function! s:GoTo(line, col)
+    execute "normal! \e" . a:line . "G" . a:col . "|"
+endfunction
+
+"apply select/delete etc. e.g. run di" or va(
+function s:ApplyCommand(type, mod, symbol)
+    execute "normal! \e" . a:type . a:mod . a:symbol
+endfunction
+
+"main function: builds symbol stack and run selection function
 function! s:SmartPairs(type, mod, ...)
     if a:0 > 0
         let str = getline(a:1)
@@ -90,20 +131,20 @@ function! s:SmartPairs(type, mod, ...)
         let s:stops_str = ''
     endif
     let str = str[:cur - 1]
-    " remove all escaped symbols from line
+    "remove all escaped symbols from line
     let str = substitute(str, '\\.', '__', 'g')
 
-    " and now process prepared line 
+    "and now process prepared line 
     while cur > 0
         let cur = cur - 1
         let ch = str[cur]
-        " skip if current char isn't a target
+        "skip if current symbol isn't a target
         if index(s:all_targets, ch) < 0
             continue
         endif
 
-        " workaround for tags <div></div> -> <...> c...>
-        "                     <br/> -> <...b
+        "workaround for tags <div></div> -> <...> c...>
+        "                    <br/> -> <...b
         if ch == '>' && cur > 0 && str[cur - 1] == '/'
             let ch = 'b'
         elseif ch == '<' && str[cur + 1] == '/' 
@@ -120,62 +161,62 @@ function! s:SmartPairs(type, mod, ...)
             let left = '\['
         endif
         " repeat replacement while result has changes
-        while 1
-            let str = substitute(s:stops_str, '\('.left.'[^'.left.']\{-}'.right.'\)', '\=repeat("_", strlen(submatch(1)))', 'g')
-            if str == s:stops_str
-                break
-            else
-                let s:stops_str = str
-            endif
-        endwhile
+        let s:stops_str = s:ReplaceAll(s:stops_str, '\('.left.'[^'.left.']\{-}'.right.'\)')
     endfor
     " relpace matched tags
     " replace all <.../> e.g. <br/> ('b' is '/>' )
-    while 1
-        let str = substitute(s:stops_str, '\(<.\{-}b\)', '\=repeat("_", strlen(submatch(1)))', 'g')
-        if str == s:stops_str
-            break
-        else
-            let s:stops_str = str
-        endif
-    endwhile
+    let s:stops_str = s:ReplaceAll(s:stops_str, '\(<.\{-}b\)')
     " replace all opened tags to t____
     let s:stops_str = substitute(s:stops_str, '\(<.\{-}>\)', '\="t".repeat("_", strlen(submatch(1)) - 1)', 'g')
     " replace all closed tags to r____ ('c' is '</')
     let s:stops_str = substitute(s:stops_str, '\(c.\{-}>\)', '\="r".repeat("_", strlen(submatch(1)) - 1)', 'g')
     " replace all matched tags <...>...</...> e.g. <div>...</div>
-    while 1
-        let str = substitute(s:stops_str, '\(t[^t]\{-}r\)', '\=repeat("_", strlen(submatch(1)))', 'g')
-        if str == s:stops_str
-            break
-        else
-            let s:stops_str = str
-        endif
-    endwhile
+    let s:stops_str = s:ReplaceAll(s:stops_str, '\(t[^t]\{-}r\)')
     call s:ApplyPairs()
 endfunction
 
+"apply select/delete/change for text between first pair symbol in the stack
 function! s:ApplyPairs()
+    "catch maxfuncdepth exception
     try
+        "get first unpair symbol from stack
         let stop = s:GetFromStack()
+        let current_position = { 'line': line('.'), 'col': col('.') }
      
+        "if this is opened symbol e.g. (, [, {
         if type(stop) == type({}) && (has_key(s:targets, stop.symbol) || stop.symbol == 't')
+            "remove this symbol from stack
             call s:RemoveLastFromStack()
-            let prev_position = { 'line': line('.'), 'col': col('.') }
-            let line = getline(stop.position[0])
-            execute "normal! " . stop.position[0] . "G" . stop.position[1] . "|"
-            execute "normal! \e" . s:type . s:mod . stop.symbol
-            if  stop.position[0] == line('.') && stop.position[1] == col('.') && line == getline('.')
-                execute "normal! \e" . prev_position.line . "G" . prev_position.col . "|"
+            "save line with this symbol
+            let line = getline(stop.line)
+            "apply command (select/delete etc)
+            call s:GoTo(stop.line, stop.col)
+            call s:ApplyCommand(s:type, s:mod, stop.symbol)
+
+            "check whether something was changed
+            "if we apply select then cursor position should be changed
+            "if we apply delete/change then line should be changed
+            if  stop.line == line('.') && stop.col == col('.') && line == getline('.')
+                "if nothing is changed run ApplyPairs again
+                call s:GoTo(current_position.line, current_position.col)
                 call s:ApplyPairs()
-            else
+            elseif s:type == 'v'
+                "if operation was success then save state (selection & symbol)
+                "this state will be used for NextPairs operation
                 let s:laststop = stop
                 let s:lastselected = s:GetSelection()
             endif
         elseif s:line > 1 && s:start_line - s:line < g:smartpairs_maxdepth
+            "if we nothing found in the stack 
+            "or current symbol is closed e.g. ), ], }
+            "then extend stack with line above current line
             let s:line = s:line - 1
             call s:SmartPairs(s:type, s:mod, s:line)
         elseif len(s:stops) > 0
+            "if we can't extend stack anymore
+            "but we have some symbols in the stack
+            "then remove last blocker symbol from stack and
+            "run ApplyPairs again
             call s:RemoveLastFromStack()
             call s:ApplyPairs()
         endif
@@ -183,29 +224,66 @@ function! s:ApplyPairs()
     endtry
 endfunction
 
-function! s:NextPairs()
+"apply next pairs from stack for current selection (extend selection)
+"warning: this function is used only for selection mode (virtual)
+"this command can be used with flag 'i' or 'a' its work like vi or va
+"if no flag is given then previous selection flag is used or flag 'i'
+"will be used for new selection 
+function! s:NextPairs(...)
+    "check flags from params
+    if a:0 > 0
+        let s:mod = a:1
+    endif
+    "get current selection
     let selected = s:GetSelection()
 
+    "if we run NextPairs from SmartPairs/NextPairs then run next selection
     if exists('s:lastselected') && s:lastselected == selected
         let stop = s:laststop
-        execute "normal! " . stop.position[0] . "G" . stop.position[1] . "|"
-        execute "normal! \ev" . s:mod . stop.symbol
+        call s:GoTo(stop.line, stop.col)
+        call s:ApplyCommand('v', s:mod, stop.symbol)
         call s:ApplyPairs()
     else
-        call s:SmartPairs('v', 'i')
+        "else run new selection for current line
+        let mod = a:0 > 0 ? a:1 : 'i'
+        call s:SmartPairs('v', mod)
     endif
 endfunction
 
+"define commands for vim (for internal tests)
 command! -nargs=1 SmartPairsI call s:SmartPairs(<f-args>, 'i')
 command! -nargs=1 SmartPairsA call s:SmartPairs(<f-args>, 'a')
-command! NextPairs call s:NextPairs()
+command! NextPairs  call s:NextPairs()
+command! NextPairsI call s:NextPairs('i')
+command! NextPairsA call s:NextPairs('a')
 
-nnoremap <silent> viv :<C-U>call <SID>SmartPairs('v', 'i')<CR>
-nnoremap <silent> vav :<C-U>call <SID>SmartPairs('v', 'a')<CR>
-nnoremap <silent> div :<C-U>call <SID>SmartPairs('d', 'i')<CR>
-nnoremap <silent> dav :<C-U>call <SID>SmartPairs('d', 'a')<CR>
-nnoremap <silent> civ :<C-U>call <SID>SmartPairs('c', 'i')<CR>a
-nnoremap <silent> cav :<C-U>call <SID>SmartPairs('c', 'a')<CR>a
-nnoremap <silent> yiv :<C-U>call <SID>SmartPairs('y', 'i')<CR>
-nnoremap <silent> yav :<C-U>call <SID>SmartPairs('y', 'a')<CR>
-vnoremap <silent> v   :<C-U>call <SID>NextPairs()<CR>
+"keymappings
+"mapping for first run (found first pairs run command)
+if !exists('g:smartpairs_key')
+    let g:smartpairs_key = 'v'
+end
+for type in ['v', 'd', 'c', 'y']
+    for mod in ['i', 'a']
+        let cmd = 'nnoremap <silent> ' . type . mod . g:smartpairs_key . '  :<C-U>call <SID>SmartPairs("' . type . '", "' . mod .'")<CR>'
+        if type == 'c' 
+            let cmd .= 'a'
+        endif
+        silent exec cmd
+    endfor
+endfor
+
+"mapping for next pairs (only for selection mode)
+if !exists('g:smartpairs_nextpairs_key')
+    let g:smartpairs_nextpairs_key = 'v'
+end
+silent exec 'vnoremap <silent> ' . g:smartpairs_nextpairs_key . '  :<C-U>call <SID>NextPairs()<CR>'
+
+if !exists('g:smartpairs_nextpairs_key_i')
+    let g:smartpairs_nextpairs_key_i = 'i'
+end
+silent exec 'vnoremap <silent> ' . g:smartpairs_nextpairs_key_i . '  :<C-U>call <SID>NextPairs("i")<CR>'
+
+if !exists('g:smartpairs_nextpairs_key_a')
+    let g:smartpairs_nextpairs_key_a = 'a'
+end
+silent exec 'vnoremap <silent> ' . g:smartpairs_nextpairs_key_a . '  :<C-U>call <SID>NextPairs("a")<CR>'
