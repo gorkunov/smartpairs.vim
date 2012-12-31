@@ -57,13 +57,13 @@ let g:smartpairs_nextpairs_key = 'v'
 
 "Key for running smartpairs in the selection mode
 "for extending selection with IN-mod (like vi")
-"default is 'i'
-let g:smartpairs_nextpairs_key_i = 'i'
+"default is 'z'
+let g:smartpairs_nextpairs_key_i = 'z'
 
 "Key for running smartpairs in the selection mode 
 "for extending selection with ABOVE-mod (like va")
-"default is 'a'
-let g:smartpairs_nextpairs_key_a = 'a'
+"default is 'Z'
+let g:smartpairs_nextpairs_key_a = 'Z'
 ```
 
 Build status
