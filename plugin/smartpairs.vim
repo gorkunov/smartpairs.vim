@@ -67,8 +67,25 @@ endfunction
 function! s:GetFromStack()
     if strlen(s:stops_str) > 0
         let ch = s:stops_str[strlen(s:stops_str) - 1]
-        "remove useless symbol from stack
-        if ch == "_"
+        "remove useless symbol from stack (or end of opened tag)
+        if ch == '_' || ch == 'e'
+            "if this is end of opened tag then save end position to the head of tag
+            "It helps us to fix wrong vim selection for some cases
+            "see tests #43-#44
+            if ch == 'e'
+                "first of all we find head of tag 't'
+                "it always present in the stask if we have 'e'
+                let pos = strlen(s:stops_str) - 2
+                while 1
+                    let ch = s:stops_str[pos]
+                    if ch == 't' | break | endif
+                    let pos -= 1
+                endwhile
+                "then save end position to the head
+                "it uses in the ApplyPairs method
+                let s:stops[pos]['end_line'] = s:stops[-1].line
+                let s:stops[pos]['end_col']  = s:stops[-1].col
+            endif
             call s:RemoveLastFromStack()
             let stop = s:GetFromStack()
         else
@@ -110,7 +127,7 @@ function! s:GoTo(line, col)
 endfunction
 
 "apply select/delete etc. e.g. run di" or va(
-function s:ApplyCommand(type, mod, symbol)
+function! s:ApplyCommand(type, mod, symbol)
     execute "normal! \e" . a:type . a:mod . a:symbol
 endfunction
 
@@ -166,12 +183,14 @@ function! s:SmartPairs(type, mod, ...)
     " relpace matched tags
     " replace all <.../> e.g. <br/> ('b' is '/>' )
     let s:stops_str = s:ReplaceAll(s:stops_str, '\(<.\{-}b\)')
-    " replace all opened tags to t____
-    let s:stops_str = substitute(s:stops_str, '\(<.\{-}>\)', '\="t".repeat("_", strlen(submatch(1)) - 1)', 'g')
+    " replace all opened tags to t___e
+    " note: save end of tag as 'e' to fix vim wrong selection 
+    " (see tests #43-#44)
+    let s:stops_str = substitute(s:stops_str, '\(<.\{-}>\)', '\="t".repeat("_", strlen(submatch(1)) - 2)."e"', 'g')
     " replace all closed tags to r____ ('c' is '</')
     let s:stops_str = substitute(s:stops_str, '\(c.\{-}>\)', '\="r".repeat("_", strlen(submatch(1)) - 1)', 'g')
     " replace all matched tags <...>...</...> e.g. <div>...</div>
-    let s:stops_str = s:ReplaceAll(s:stops_str, '\(t[^t]\{-}r\)')
+    let s:stops_str = s:ReplaceAll(s:stops_str, '\(t[^t]\{-}e[^e]\{-}r\)')
     call s:ApplyPairs()
 endfunction
 
@@ -196,9 +215,22 @@ function! s:ApplyPairs()
             "check whether something was changed
             "if we apply select then cursor position should be changed
             "if we apply delete/change then line should be changed
-            if  stop.line == line('.') && stop.col == col('.') && line == getline('.')
-                "if nothing is changed run ApplyPairs again
+            "
+            "But also changes/selection can be wrong. 
+            "Currently we found several cases for tags. Apply for those
+            "cases special trick: if after changes cursor is placed before
+            "end of tag (<div _>) then last operation was wrong
+            let ln = line('.')
+            let col = col('.')
+            if (stop.symbol != 't' && stop.line == ln && stop.col == col && line == getline('.'))
+                \ || (stop.symbol == 't' && (stop.end_line > ln || (stop.end_line == ln && stop.end_col > col))) "trick for tags
+                "undo last change/delete operation
+                if s:type == 'c' || s:type == 'd'
+                    execute "normal! \eu"
+                endif
+                "replace cursor to the old position
                 call s:GoTo(current_position.line, current_position.col)
+                "and apply operation again (with next pairs in the stack)
                 call s:ApplyPairs()
             elseif s:type == 'v'
                 "if operation was success then save state (selection & symbol)
@@ -279,11 +311,11 @@ end
 silent exec 'vnoremap <silent> ' . g:smartpairs_nextpairs_key . '  :<C-U>call <SID>NextPairs()<CR>'
 
 if !exists('g:smartpairs_nextpairs_key_i')
-    let g:smartpairs_nextpairs_key_i = 'i'
+    let g:smartpairs_nextpairs_key_i = 'z'
 end
-silent exec 'vnoremap <silent> ' . g:smartpairs_nextpairs_key_i . '  :<C-U>call <SID>NextPairs("i")<CR>'
+silent exec 'vnoremap <silent> ' . g:smartpairs_nextpairs_key_i . '  :<c-u>call <sid>nextpairs("i")<cr>'
 
 if !exists('g:smartpairs_nextpairs_key_a')
-    let g:smartpairs_nextpairs_key_a = 'a'
+    let g:smartpairs_nextpairs_key_a = 'Z'
 end
-silent exec 'vnoremap <silent> ' . g:smartpairs_nextpairs_key_a . '  :<C-U>call <SID>NextPairs("a")<CR>'
+silent exec 'vnoremap <silent> ' . g:smartpairs_nextpairs_key_a . '  :<c-u>call <sid>nextpairs("a")<cr>'

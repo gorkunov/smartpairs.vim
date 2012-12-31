@@ -1,0 +1,3 @@
+if a<b
+endif
+workaround for tags <div>test</div> ><div> </div>
