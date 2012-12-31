@@ -146,6 +146,10 @@ function! s:SmartPairs(type, mod, ...)
         "stack with current targets
         let s:stops = []
         let s:stops_str = ''
+
+        "drop previous state
+        if exists('s:laststop') | unlet s:laststop | endif
+        if exists('s:lastselected') | unlet s:lastselected | endif
     endif
     let str = str[:cur - 1]
     "remove all escaped symbols from line
@@ -230,6 +234,10 @@ function! s:ApplyPairs()
                 endif
                 "replace cursor to the old position
                 call s:GoTo(current_position.line, current_position.col)
+                "restore last applied selection
+                if s:type == 'v' && exists('s:laststop')
+                    call s:ApplyCommand('v', s:mod, s:laststop.symbol)
+                endif
                 "and apply operation again (with next pairs in the stack)
                 call s:ApplyPairs()
             elseif s:type == 'v'

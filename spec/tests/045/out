@@ -1,0 +1,2 @@
+"check if debugging is turned off
+if !exists()
