@@ -64,6 +64,10 @@ let g:smartpairs_nextpairs_key_i = 'z'
 "for extending selection with ABOVE-mod (like va")
 "default is 'Z'
 let g:smartpairs_nextpairs_key_a = 'Z'
+
+"Smartpairs looks only 20 lines before cursor position
+"but you can changes this limit:
+let g:smartpairs_maxdepth = 20
 ```
 
 Build status
