@@ -1,11 +1,16 @@
 *smartpairs.txt*  Fantastic selection improvement
 *smartpairs*
+
+Author:  Alex Gorkunov (alexander.gorkunov@gmail.com)
+Github: http://github.com/gorkunov/smartpairs.vim
+
 ==============================================================================
 CONTENTS                                                 *smartpairs-contents*
 
-    1.About...................................|smartpairs-introduction|
+    1.Introduction............................|smartpairs-introduction|
     2.Shorcuts................................|smartpairs-mappings|
     3.Options.................................|smartpairs-options|
+    4.License.................................|smartpairs-license|
 
 ==============================================================================
 1. Introduction                                      *smartpairs-introduction*
@@ -77,5 +82,11 @@ Smartpairs looks only 20 lines before cursor position
 but you can changes this limit: >
     let g:smartpairs_maxdepth = 20
 <
+
+==============================================================================
+4. License                                                *smartpairs-license*
+
+Smartpairs is released under the wtfpl.
+See http://sam.zoy.org/wtfpl/COPYING.
 
 ==============================================================================

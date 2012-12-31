@@ -75,3 +75,7 @@ Build status
 Yep! We have a lot of tests! See spec folder!
 
 [![Build Status](https://api.travis-ci.org/gorkunov/smartpairs.vim.png)](http://travis-ci.org/gorkunov/smartpairs.vim)
+
+License
+-------
+Smartpairs is released under the [wtfpl](http://sam.zoy.org/wtfpl/COPYING)
