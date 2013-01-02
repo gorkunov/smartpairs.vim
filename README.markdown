@@ -57,13 +57,13 @@ let g:smartpairs_nextpairs_key = 'v'
 
 "Key for running smartpairs in the selection mode
 "for extending selection with IN-mod (like vi")
-"default is 'z'
-let g:smartpairs_nextpairs_key_i = 'z'
+"default is 'm'
+let g:smartpairs_nextpairs_key_i = 'm'
 
 "Key for running smartpairs in the selection mode 
 "for extending selection with ABOVE-mod (like va")
-"default is 'Z'
-let g:smartpairs_nextpairs_key_a = 'Z'
+"default is 'M'
+let g:smartpairs_nextpairs_key_a = 'M'
 
 "Smartpairs looks only 20 lines before cursor position
 "but you can changes this limit:

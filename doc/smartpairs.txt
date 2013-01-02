@@ -63,17 +63,17 @@ the next pair) >
 <
 
                                                 *'smartpairs_nextpairs_key_i'*
-Default: 'z'
+Default: 'm'
 Key for running smartpairs in the selection mode for extending 
 selection with IN-mod (like vi") >
-    let g:smartpairs_nextpairs_key_i = 'z'
+    let g:smartpairs_nextpairs_key_i = 'm'
 <
 
                                                 *'smartpairs_nextpairs_key_a'*
-Default: 'Z'
+Default: 'M'
 Key for running smartpairs in the selection mode for extending 
 selection with ABOVE-mod (like va") >
-    let g:smartpairs_nextpairs_key_a = 'Z'
+    let g:smartpairs_nextpairs_key_a = 'M'
 <
 
                                                        *'smartpairs_maxdepth'*

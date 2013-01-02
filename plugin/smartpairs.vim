@@ -319,11 +319,11 @@ end
 silent exec 'vnoremap <silent> ' . g:smartpairs_nextpairs_key . '  :<C-U>call <SID>NextPairs()<CR>'
 
 if !exists('g:smartpairs_nextpairs_key_i')
-    let g:smartpairs_nextpairs_key_i = 'z'
+    let g:smartpairs_nextpairs_key_i = 'm'
 end
-silent exec 'vnoremap <silent> ' . g:smartpairs_nextpairs_key_i . '  :<c-u>call <sid>nextpairs("i")<cr>'
+silent exec 'vnoremap <silent> ' . g:smartpairs_nextpairs_key_i . '  :<C-U>call <SID>NextPairs("i")<cr>'
 
 if !exists('g:smartpairs_nextpairs_key_a')
-    let g:smartpairs_nextpairs_key_a = 'Z'
+    let g:smartpairs_nextpairs_key_a = 'M'
 end
-silent exec 'vnoremap <silent> ' . g:smartpairs_nextpairs_key_a . '  :<c-u>call <sid>nextpairs("a")<cr>'
+silent exec 'vnoremap <silent> ' . g:smartpairs_nextpairs_key_a . '  :<C-U>call <SID>NextPairs("a")<cr>'
