@@ -1,9 +1,9 @@
 About
 -----
-**smartpairs** allows you forget about difficult keys combination like ```vi{``` or ```va"```.
+**smartpairs** allows you to forget about difficult keys combination like ```vi{``` or ```va"```.
 
 Now you can use only one shortcut for all typical combinations. Even if you've already 
-selected something you can easily fix selection by using smartpairs. 
+selected something you can easily correct selection by using smartpairs. 
 
 Below is a screenshot showing how plugin works:
 
@@ -11,7 +11,7 @@ Below is a screenshot showing how plugin works:
 
 Plugin searches first unpair symbol from the left of the current cursor
 position and then runs target command with this symbol. When you press 
-```v``` again plugin extend current selection by next pairs.
+```v``` again plugin extends current selection to the next pairs.
 
 Installation
 ------------
@@ -38,7 +38,7 @@ Commands list:
     ya* -> yav
     Where * is in <, >, ", ', `, (, ), [, ], {, } or t as tag
     
-After v\* commands you can press v again and selection will be extended to 
+After ```v*``` commands you can press ```v``` again and selection will be extended to 
 the next pairs.
 
 Advanced configuration
@@ -51,7 +51,7 @@ For changing smartpairs keys binding add those lines to your .vimrc file:
 let g:smartpairs_key = 'v'
 
 "Key for running smartpairs in the selection mode 
-"(extend current selection to the next pair)
+"(extend current selection to the next pairs)
 "default is 'v'
 let g:smartpairs_nextpairs_key = 'v'
 
@@ -65,7 +65,7 @@ let g:smartpairs_nextpairs_key_i = 'm'
 "default is 'M'
 let g:smartpairs_nextpairs_key_a = 'M'
 
-"Smartpairs looks only 20 lines before cursor position
+"Smartpairs works only with 20 lines before cursor position
 "but you can changes this limit:
 let g:smartpairs_maxdepth = 20
 ```

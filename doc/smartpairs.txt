@@ -15,14 +15,16 @@ CONTENTS                                                 *smartpairs-contents*
 ==============================================================================
 1. Introduction                                      *smartpairs-introduction*
 
-Smartpairs allows you forget about difficult keys combination like vi{ or va".
+Smartpairs allows you to forget about difficult keys combination 
+like vi{ or va".
 
-Now you can use only one shortcut for all typical combinations. Even if you've
-already selected something you can easily fix selection by using smartpairs. 
+Now you can use only one shortcut for all typical combinations. 
+Even if you've already selected something you can easily correct
+selection by using smartpairs. 
 
 Plugin searches first unpair symbol from the left of the current cursor
-position and then runs source command with this symbol. When you press ```v```
-again plugin extend current selection by next pairs.
+position and then runs source command with this symbol. When you press `v`
+again plugin extend current selection to the next pairs.
 
 ==============================================================================
 2. Mappings                                              *smartpairs-mappings*
@@ -43,7 +45,7 @@ Mappings list:
 
     Where * is in <, >, ", ', `, (, ), [, ], {, } or t as tag
     
-After v* commands you can press v again and selection will be extended to 
+After `v*` commands you can press `v` again and selection will be extended to 
 the next pairs.
 
 ==============================================================================
@@ -58,7 +60,7 @@ Key for running smartpairs in all modes (select/delete/change/yank) >
                                                   *'smartpairs_nextpairs_key'*
 Default: 'v'
 Key for running smartpairs in the selection mode (extend current selection to
-the next pair) >
+the next pairs) >
     let g:smartpairs_nextpairs_key = 'v'
 <
 
@@ -78,7 +80,7 @@ selection with ABOVE-mod (like va") >
 
                                                        *'smartpairs_maxdepth'*
 Default: 20
-Smartpairs looks only 20 lines before cursor position
+Smartpairs works only with 20 lines before cursor position
 but you can changes this limit: >
     let g:smartpairs_maxdepth = 20
 <
