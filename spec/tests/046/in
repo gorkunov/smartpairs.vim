@@ -1,0 +1,1 @@
+result[req.requesteddate] << {:id => req.id, :confirmable_id => req.confirmable_id, :confirmed => req.decorate.confirmation_status_for_calendar}

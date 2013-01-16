@@ -128,7 +128,13 @@ endfunction
 
 "apply select/delete etc. e.g. run di" or va(
 function! s:ApplyCommand(type, mod, symbol)
-    execute "normal! \e" . a:type . a:mod . a:symbol
+    let status = 1
+    try
+        execute "normal! \e" . a:type . a:mod . a:symbol
+    catch
+        let status = 0
+    endtry
+    return status
 endfunction
 
 "main function: builds symbol stack and run selection function
@@ -161,6 +167,16 @@ function! s:SmartPairs(type, mod, ...)
         let ch = str[cur]
         "skip if current symbol isn't a target
         if index(s:all_targets, ch) < 0
+            continue
+        endif
+
+        "skip => (ruby)
+        if ch == '>' && cur > 0 && str[cur - 1] == '='
+            continue
+        endif
+
+        "skip << (ruby)
+        if ch == '<' && cur > 0 && (str[cur - 1] == '<' || str[cur + 1] == '<')
             continue
         endif
 
@@ -200,68 +216,64 @@ endfunction
 
 "apply select/delete/change for text between first pair symbol in the stack
 function! s:ApplyPairs()
-    "catch maxfuncdepth exception
-    try
-        "get first unpair symbol from stack
-        let stop = s:GetFromStack()
-        let current_position = { 'line': line('.'), 'col': col('.') }
-     
-        "if this is opened symbol e.g. (, [, {
-        if type(stop) == type({}) && (has_key(s:targets, stop.symbol) || stop.symbol == 't')
-            "remove this symbol from stack
-            call s:RemoveLastFromStack()
-            "save line with this symbol
-            let line = getline(stop.line)
-            "apply command (select/delete etc)
-            call s:GoTo(stop.line, stop.col)
-            call s:ApplyCommand(s:type, s:mod, stop.symbol)
+    "get first unpair symbol from stack
+    let stop = s:GetFromStack()
+    let current_position = { 'line': line('.'), 'col': col('.') }
+ 
+    "if this is opened symbol e.g. (, [, {
+    if type(stop) == type({}) && (has_key(s:targets, stop.symbol) || stop.symbol == 't')
+        "remove this symbol from stack
+        call s:RemoveLastFromStack()
+        "save line with this symbol
+        let line = getline(stop.line)
+        "apply command (select/delete etc)
+        call s:GoTo(stop.line, stop.col)
+        let status = s:ApplyCommand(s:type, s:mod, stop.symbol)
 
-            "check whether something was changed
-            "if we apply select then cursor position should be changed
-            "if we apply delete/change then line should be changed
-            "
-            "But also changes/selection can be wrong. 
-            "Currently we found several cases for tags. Apply for those
-            "cases special trick: if after changes cursor is placed before
-            "end of tag (<div _>) then last operation was wrong
-            let ln = line('.')
-            let col = col('.')
-            if (stop.symbol != 't' && stop.line == ln && stop.col == col && line == getline('.'))
-                \ || (stop.symbol == 't' && (stop.end_line > ln || (stop.end_line == ln && stop.end_col > col))) "trick for tags
-                "undo last change/delete operation
-                if s:type == 'c' || s:type == 'd'
-                    execute "normal! \eu"
-                endif
-                "replace cursor to the old position
-                call s:GoTo(current_position.line, current_position.col)
-                "restore last applied selection
-                if s:type == 'v' && exists('s:laststop')
-                    call s:ApplyCommand('v', s:mod, s:laststop.symbol)
-                endif
-                "and apply operation again (with next pairs in the stack)
-                call s:ApplyPairs()
-            elseif s:type == 'v'
-                "if operation was success then save state (selection & symbol)
-                "this state will be used for NextPairs operation
-                let s:laststop = stop
-                let s:lastselected = s:GetSelection()
+        "check whether something was changed
+        "if we apply select then cursor position should be changed
+        "if we apply delete/change then line should be changed
+        "
+        "But also changes/selection can be wrong. 
+        "Currently we found several cases for tags. Apply for those
+        "cases special trick: if after changes cursor is placed before
+        "end of tag (<div _>) then last operation was wrong
+        let ln = line('.')
+        let col = col('.')
+        if !status || ((stop.symbol != 't' && stop.line == ln && stop.col == col && line == getline('.'))
+            \ || (stop.symbol == 't' && (stop.end_line > ln || (stop.end_line == ln && stop.end_col > col)))) "trick for tags
+            "undo last change/delete operation
+            if s:type == 'c' || s:type == 'd'
+                execute "normal! \eu"
             endif
-        elseif s:line > 1 && s:start_line - s:line < g:smartpairs_maxdepth
-            "if we nothing found in the stack 
-            "or current symbol is closed e.g. ), ], }
-            "then extend stack with line above current line
-            let s:line = s:line - 1
-            call s:SmartPairs(s:type, s:mod, s:line)
-        elseif len(s:stops) > 0
-            "if we can't extend stack anymore
-            "but we have some symbols in the stack
-            "then remove last blocker symbol from stack and
-            "run ApplyPairs again
-            call s:RemoveLastFromStack()
+            "replace cursor to the old position
+            call s:GoTo(current_position.line, current_position.col)
+            "restore last applied selection
+            if s:type == 'v' && exists('s:laststop')
+                call s:ApplyCommand('v', s:mod, s:laststop.symbol)
+            endif
+            "and apply operation again (with next pairs in the stack)
             call s:ApplyPairs()
+        elseif s:type == 'v'
+            "if operation was success then save state (selection & symbol)
+            "this state will be used for NextPairs operation
+            let s:laststop = stop
+            let s:lastselected = s:GetSelection()
         endif
-    catch
-    endtry
+    elseif s:line > 1 && s:start_line - s:line < g:smartpairs_maxdepth
+        "if we nothing found in the stack 
+        "or current symbol is closed e.g. ), ], }
+        "then extend stack with line above current line
+        let s:line = s:line - 1
+        call s:SmartPairs(s:type, s:mod, s:line)
+    elseif len(s:stops) > 0
+        "if we can't extend stack anymore
+        "but we have some symbols in the stack
+        "then remove last blocker symbol from stack and
+        "run ApplyPairs again
+        call s:RemoveLastFromStack()
+        call s:ApplyPairs()
+    endif
 endfunction
 
 "apply next pairs from stack for current selection (extend selection)
