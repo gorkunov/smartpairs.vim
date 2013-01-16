@@ -23,10 +23,17 @@ module Support
       VIM.instance.command cmd
     end
 
+    def toggle_uber_mode
+      cmd = "NextPairsToggleUberMode"
+      VIM.instance.command cmd
+    end
+
     def apply_commands(commands)
       commands.split("\n").each do |command|
         if /SmartPairs(I|A)\s(v|c|d|y)/ =~ command
           smartpairs $2, $1
+        elsif /NextPairsToggleUberMode/ =~ command
+          toggle_uber_mode
         elsif /NextPairsA?/ =~ command
           nextpairs
         elsif /sleep/ =~ command

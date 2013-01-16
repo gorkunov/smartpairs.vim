@@ -18,6 +18,12 @@ if !exists('g:smartpairs_maxdepth')
     let g:smartpairs_maxdepth = 20
 end
 
+"combinate 'i' and 'a' modes in one way
+"disabled by default
+if !exists('g:smartpairs_uber_mode')
+    let g:smartpairs_uber_mode = 0
+end
+
 "define all searchable symbols aka *pairs*
 let s:targets = { 
             \'<' : '>', 
@@ -131,6 +137,18 @@ function! s:ApplyCommand(type, mod, symbol)
     let status = 1
     try
         execute "normal! \e" . a:type . a:mod . a:symbol
+        "fix vim selection for va', va", va`:
+        "remove extra spaces from left or right side.
+        "check this (  'te_st') put cursor to _ and run va'
+        if a:type == 'v' && a:mod == 'a' && index(['"', "'", '`'], a:symbol) > -1
+            let selection = s:GetSelection()
+            if selection[0] != a:symbol
+                execute "normal! \egvof" . a:symbol . "o"
+            endif
+            if selection[strlen(selection) - 1] != a:symbol
+                execute "normal! gvF" . a:symbol
+            endif
+        endif
     catch
         let status = 0
     endtry
@@ -293,13 +311,35 @@ function! s:NextPairs(...)
     if exists('s:lastselected') && s:lastselected == selected
         let stop = s:laststop
         call s:GoTo(stop.line, stop.col)
-        call s:ApplyCommand('v', s:mod, stop.symbol)
-        call s:ApplyPairs()
+        "combinate 'a' and 'i' modes 
+        if g:smartpairs_uber_mode
+            if s:mod == 'i'
+                let s:mod = 'a'
+                call s:ApplyCommand('v', s:mod, stop.symbol)
+                let s:lastselected = s:GetSelection()
+            else
+                call s:ApplyCommand('v', s:mod, stop.symbol)
+                let s:mod = 'i'
+                let old_selection = s:lastselected
+                call s:ApplyPairs()
+                let selected = s:GetSelection()
+                if selected == old_selection
+                    call s:NextPairs()
+                endif
+            endif
+        else
+            call s:ApplyCommand('v', s:mod, stop.symbol)
+            call s:ApplyPairs()
+        endif
     else
         "else run new selection for current line
         let mod = a:0 > 0 ? a:1 : 'i'
         call s:SmartPairs('v', mod)
     endif
+endfunction
+
+function! s:ToggleUberMode()
+    let g:smartpairs_uber_mode = !g:smartpairs_uber_mode
 endfunction
 
 "define commands for vim (for internal tests)
@@ -308,6 +348,8 @@ command! -nargs=1 SmartPairsA call s:SmartPairs(<f-args>, 'a')
 command! NextPairs  call s:NextPairs()
 command! NextPairsI call s:NextPairs('i')
 command! NextPairsA call s:NextPairs('a')
+
+command! NextPairsToggleUberMode call s:ToggleUberMode()
 
 "keymappings
 "mapping for first run (found first pairs run command)
