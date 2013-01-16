@@ -34,7 +34,7 @@ Commands list:
     ca* -> cav
     di* -> div
     da* -> dav
-    ya* -> yiv
+    yi* -> yiv
     ya* -> yav
     Where * is in <, >, ", ', `, (, ), [, ], {, } or t as tag
     
