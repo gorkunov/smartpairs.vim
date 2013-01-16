@@ -57,7 +57,7 @@ Uber mode enables combination 'i' and 'a' modes. Let's see how it works:
 We have a line (cursor position under _): >
     ( 'te_st' )
 <
-Without *uber mode* our keys combination convert to: >
+Without *uber mode* our keys combination converts to: >
     viv -> vi'
     v   -> vi(
 <

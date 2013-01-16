@@ -49,7 +49,7 @@ We have a line (cursor position under _):
 
     ( 'te_st' )
 
-Without *uber mode* our keys combination convert to:
+Without *uber mode* our keys combination converts to:
     
     viv -> vi'
     v   -> vi(
@@ -61,7 +61,7 @@ With *uber mode*:
     v   -> vi(
     v   -> va(
 
-To enable uber-mode set ```g:smartpairs_uber_mode = 1``` in your vimrc.
+To enable *uber mode* set ```g:smartpairs_uber_mode = 1``` in your vimrc.
 
 Advanced configuration
 ----------------------
