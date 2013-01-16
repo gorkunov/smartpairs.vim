@@ -41,6 +41,28 @@ Commands list:
 After ```v*``` commands you can press ```v``` again and selection will be extended to 
 the next pairs.
 
+Uber Mode
+---------
+Uber mode enables combination 'i' and 'a' modes. Let's see how it works:
+
+We have a line (cursor position under _):
+
+    ( 'te_st' )
+
+Without *uber mode* our keys combination convert to:
+    
+    viv -> vi'
+    v   -> vi(
+
+With *uber mode*:
+    
+    viv -> vi'
+    v   -> va'
+    v   -> vi(
+    v   -> va(
+
+To enable uber-mode set ```g:smartpairs_uber_mode = 1``` in your vimrc.
+
 Advanced configuration
 ----------------------
 For changing smartpairs keys binding add those lines to your .vimrc file:
@@ -54,6 +76,10 @@ let g:smartpairs_key = 'v'
 "(extend current selection to the next pairs)
 "default is 'v'
 let g:smartpairs_nextpairs_key = 'v'
+
+"Enable 'uber mode' (see above)
+"default is 0
+let g:smartpairs_uber_mode = 1
 
 "Key for running smartpairs in the selection mode
 "for extending selection with IN-mod (like vi")

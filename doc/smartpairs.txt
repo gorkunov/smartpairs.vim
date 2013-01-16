@@ -9,8 +9,9 @@ CONTENTS                                                 *smartpairs-contents*
 
     1.Introduction............................|smartpairs-introduction|
     2.Shorcuts................................|smartpairs-mappings|
-    3.Options.................................|smartpairs-options|
-    4.License.................................|smartpairs-license|
+    3.Uber Mode...............................|smartpairs-uber-mode|
+    4.Options.................................|smartpairs-options|
+    5.License.................................|smartpairs-license|
 
 ==============================================================================
 1. Introduction                                      *smartpairs-introduction*
@@ -49,7 +50,28 @@ After `v*` commands you can press `v` again and selection will be extended to
 the next pairs.
 
 ==============================================================================
-3. Options                                                *smartpairs-options*
+3. Uber Mode                                            *smartpairs-uber-mode*
+
+Uber mode enables combination 'i' and 'a' modes. Let's see how it works:
+
+We have a line (cursor position under _): >
+    ( 'te_st' )
+<
+Without *uber mode* our keys combination convert to: >
+    viv -> vi'
+    v   -> vi(
+<
+With *uber mode*: >
+    viv -> vi'
+    v   -> va'
+    v   -> vi(
+    v   -> va(
+<
+
+To enable uber mode see |'smartpairs_uber_mode'|.
+
+==============================================================================
+4. Options                                                *smartpairs-options*
 
                                                             *'smartpairs_key'*
 Default: 'v'
@@ -62,6 +84,12 @@ Default: 'v'
 Key for running smartpairs in the selection mode (extend current selection to
 the next pairs) >
     let g:smartpairs_nextpairs_key = 'v'
+<
+
+                                                       *'smartpairs_uber_mode'*
+Default: '0'
+Enable uber-mode see |smartpairs-uber-mode| >
+    let g:smartpairs_uber_mode = 1
 <
 
                                                 *'smartpairs_nextpairs_key_i'*
@@ -86,7 +114,7 @@ but you can changes this limit: >
 <
 
 ==============================================================================
-4. License                                                *smartpairs-license*
+5. License                                                *smartpairs-license*
 
 Smartpairs is released under the wtfpl.
 See http://sam.zoy.org/wtfpl/COPYING.
