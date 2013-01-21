@@ -268,7 +268,11 @@ function! s:ApplyPairs()
             call s:GoTo(current_position.line, current_position.col)
             "restore last applied selection
             if s:type == 'v' && exists('s:laststop')
-                call s:ApplyCommand('v', s:mod, s:laststop.symbol)
+                let mod = s:mod
+                if g:smartpairs_uber_mode
+                    let mod = (mod == 'i') ? 'a' : 'i'
+                endif
+                call s:ApplyCommand('v', mod, s:laststop.symbol)
             endif
             "and apply operation again (with next pairs in the stack)
             call s:ApplyPairs()
