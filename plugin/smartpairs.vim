@@ -62,6 +62,11 @@ function! s:InsertToStack(target, col)
     call insert(s:stops, { 'symbol': a:target, 'line': s:line, 'col': a:col })
 endfunction
 
+function! s:ReturnToStack(stop)
+    let s:stops_str = s:stops_str . a:stop.symbol
+    call add(s:stops, a:stop)
+endfunction
+
 "remove last symbol from stack
 function! s:RemoveLastFromStack()
     let s:stops_str = s:stops_str[:-2]
@@ -170,6 +175,7 @@ function! s:SmartPairs(type, mod, ...)
         "stack with current targets
         let s:stops = []
         let s:stops_str = ''
+        let s:history = []
 
         "drop previous state
         if exists('s:laststop') | unlet s:laststop | endif
@@ -277,10 +283,11 @@ function! s:ApplyPairs()
             "and apply operation again (with next pairs in the stack)
             call s:ApplyPairs()
         elseif s:type == 'v'
-            "if operation was success then save state (selection & symbol)
+            "if operation was successful then save state (selection & symbol)
             "this state will be used for NextPairs operation
             let s:laststop = stop
             let s:lastselected = s:GetSelection()
+            call add(s:history, { 'mod': s:mod, 'stop': stop })
         endif
     elseif s:line > 1 && s:start_line - s:line < g:smartpairs_maxdepth
         "if we nothing found in the stack 
@@ -320,7 +327,11 @@ function! s:NextPairs(...)
             if s:mod == 'i'
                 let s:mod = 'a'
                 call s:ApplyCommand('v', s:mod, stop.symbol)
-                let s:lastselected = s:GetSelection()
+                let selected = s:GetSelection()
+                if selected != s:lastselected
+                    let s:lastselected = selected
+                    call add(s:history, { 'mod': s:mod, 'stop': s:laststop })
+                endif
             else
                 call s:ApplyCommand('v', s:mod, stop.symbol)
                 let s:mod = 'i'
@@ -342,9 +353,40 @@ function! s:NextPairs(...)
     endif
 endfunction
 
+function! s:Revert()
+    let length = len(s:history)
+    if length > 1
+        let stop = s:GetFromStack()
+        let last1 = remove(s:history, -1)
+        let last2 = remove(s:history, -1)
+        if type(stop) == type({}) && stop == last1.stop
+        else
+            call s:ReturnToStack(last1.stop)
+            if last1.stop == last2.stop
+                let s:mod = 'a'
+            elseif s:mod == 'a'
+                let s:mod = 'i'
+                call s:ReturnToStack(last2.stop)
+            endif
+            let s:laststop = last2.stop
+        endif
+        let selection = s:GetSelection()
+        call s:NextPairs()
+        let new_selection = s:GetSelection()
+        if selection == new_selection
+            call s:Revert()
+        endif
+    elseif length == 1
+        let s:mod = 'i'
+        call s:ApplyCommand('v', s:mod, s:history[0]['stop']['symbol'])
+    endif
+endfunction
+silent exec 'vnoremap <silent> <D-V> :<C-U>call <SID>Revert()<CR>'
+
 function! s:ToggleUberMode()
     let g:smartpairs_uber_mode = !g:smartpairs_uber_mode
 endfunction
+
 
 "define commands for vim (for internal tests)
 command! -nargs=1 SmartPairsI call s:SmartPairs(<f-args>, 'i')
