@@ -1,3 +1,7 @@
+Build Status
+-----
+[![Status](https://travis-ci.org/gorkunov/smartpairs.vim.svg?branch=master)](https://travis-ci.org/gorkunov/smartpairs.vim)
+
 About
 -----
 **smartpairs** allows you to forget about difficult keys combination like ```vi{``` or ```va"```.
@@ -96,11 +100,6 @@ let g:smartpairs_nextpairs_key_a = 'M'
 let g:smartpairs_maxdepth = 20
 ```
 
-Build status
-------------
-Yep! We have a lot of tests! See spec folder!
-
-[![Build Status](https://api.travis-ci.org/gorkunov/smartpairs.vim.png)](http://travis-ci.org/gorkunov/smartpairs.vim)
 
 License
 -------
