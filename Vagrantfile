@@ -2,6 +2,5 @@
 # vi: set ft=ruby :
 
 Vagrant::Config.run do |config|
-  config.vm.box = "travis-ruby"
-  config.ssh.username = "travis"
+  config.vm.box = "ubuntu/trusty64"
 end
