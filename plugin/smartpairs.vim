@@ -134,7 +134,13 @@ endfunction
 
 "replace cursor position to new position
 function! s:GoTo(line, col)
-    execute "normal! \e" . a:line . "G" . a:col . "|"
+    "execute "normal! \e" . a:line . "G" . a:col . "|"
+    let col = a:col - 1
+    if col == 0
+      execute "normal! \e" . a:line . "G0"
+    else
+      execute "normal! \e" . a:line . "G0" . col . "l"
+    endif
 endfunction
 
 "apply select/delete etc. e.g. run di" or va(
