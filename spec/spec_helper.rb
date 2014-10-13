@@ -14,6 +14,7 @@ RSpec.configure do |config|
   # cd into a temporary directory for every example.
   config.around do |example|
     VIM.instance = Vimrunner.start
+    VIM.instance.add_plugin(File.expand_path('.'), 'spec/support/settings.vim')
     VIM.instance.add_plugin(File.expand_path('.'), 'plugin/smartpairs.vim')
     Dir.mktmpdir do |dir|
       Dir.chdir(dir) do
