@@ -87,7 +87,7 @@ the next pairs) >
 <
 
                                                        *'smartpairs_uber_mode'*
-Default: '0'
+Default: '1'
 Enable uber-mode see |smartpairs-uber-mode| >
     let g:smartpairs_uber_mode = 1
 <

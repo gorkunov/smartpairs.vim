@@ -21,7 +21,7 @@ end
 "combinate 'i' and 'a' modes in one way
 "disabled by default
 if !exists('g:smartpairs_uber_mode')
-    let g:smartpairs_uber_mode = 0
+    let g:smartpairs_uber_mode = 1
 end
 
 "define all searchable symbols aka *pairs*

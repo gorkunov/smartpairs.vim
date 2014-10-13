@@ -26,11 +26,15 @@ If you already have pathogen then put smartpairs into ~/.vim/bundle like this:
     cd ~/.vim/bundle
     git clone https://github.com/gorkunov/smartpairs.vim.git
 
-Mappings
-------------------
-By default smartpairs focuses on selection command but it also supports delete/change/yank.
+Super fast selection
+--------------------
+By default smartpairs focuses on fast selection. You can position cursor to any place inside pairs objects 
+such as () and just type `vv` and that's all. If you need to extend selection you just type again `v`. 
+This is so simple and fast. Smarpairs also supports delete/yank operations see mappings below.
+But again most of the time (99%) I use just one combination: `vv`.
 
-Commands list:
+Mappings
+--------
 
     vi* -> viv
     va* -> vav
@@ -45,8 +49,8 @@ Commands list:
 After ```v*``` commands you can press ```v``` again and selection will be extended to 
 the next pairs.
 
-Uber Mode
----------
+Uber Mode (enabled by default)
+------------------------------
 Uber mode enables combination 'i' and 'a' modes. Let's see how it works:
 
 We have a line (cursor position under _):
@@ -82,7 +86,7 @@ let g:smartpairs_key = 'v'
 let g:smartpairs_nextpairs_key = 'v'
 
 "Enable 'uber mode' (see above)
-"default is 0
+"default is 1
 let g:smartpairs_uber_mode = 1
 
 "Key for running smartpairs in the selection mode
