@@ -33,6 +33,10 @@ such as () and just type `vv` and that's all. If you need to extend selection yo
 This is so simple and fast. Smarpairs also supports delete/yank operations see mappings below.
 But again most of the time (99%) I use just one combination: `vv`.
 
+Cancel last smartpairs selection
+--------------------------------
+You can use `Ctrl+Shift+v` keys combination to cancel last selection operation.
+
 Mappings
 --------
 
@@ -98,6 +102,11 @@ let g:smartpairs_nextpairs_key_i = 'm'
 "for extending selection with ABOVE-mod (like va")
 "default is 'M'
 let g:smartpairs_nextpairs_key_a = 'M'
+
+"Keys combination for canceling last smartpais selection
+"default is '<C-V>' Ctrl+Shift+v
+"under macvim you can use Cmd key e.g. <D-V> -> Cmd+Shift+v
+let g:smartpairs_revert_key = '<C-V>'
 
 "Smartpairs works only with 20 lines before cursor position
 "but you can changes this limit:

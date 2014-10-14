@@ -387,7 +387,6 @@ function! s:Revert()
         call s:ApplyCommand('v', s:mod, s:history[0]['stop']['symbol'])
     endif
 endfunction
-silent exec 'vnoremap <silent> <D-V> :<C-U>call <SID>Revert()<CR>'
 
 function! s:ToggleUberMode()
     let g:smartpairs_uber_mode = !g:smartpairs_uber_mode
@@ -427,9 +426,14 @@ silent exec 'vnoremap <silent> ' . g:smartpairs_nextpairs_key . '  :<C-U>call <S
 if !exists('g:smartpairs_nextpairs_key_i')
     let g:smartpairs_nextpairs_key_i = 'm'
 end
-silent exec 'vnoremap <silent> ' . g:smartpairs_nextpairs_key_i . '  :<C-U>call <SID>NextPairs("i")<cr>'
+silent exec 'vnoremap <silent> ' . g:smartpairs_nextpairs_key_i . '  :<C-U>call <SID>NextPairs("i")<CR>'
 
 if !exists('g:smartpairs_nextpairs_key_a')
     let g:smartpairs_nextpairs_key_a = 'M'
 end
-silent exec 'vnoremap <silent> ' . g:smartpairs_nextpairs_key_a . '  :<C-U>call <SID>NextPairs("a")<cr>'
+silent exec 'vnoremap <silent> ' . g:smartpairs_nextpairs_key_a . '  :<C-U>call <SID>NextPairs("a")<CR>'
+
+if !exists('g:smartpairs_revert_key')
+    let g:smartpairs_revert_key = '<C-V>'
+end
+silent exec 'vnoremap <silent> ' . g:smartpairs_revert_key . '  :<C-U>call <SID>Revert()<CR>'
