@@ -76,8 +76,8 @@ endfunction
 "get first unpair symbol from stack
 "warning: this function also removes unimportant symbols from stack
 function! s:GetFromStack()
-    if strlen(s:stops_str) > 0
-        let ch = s:stops_str[strlen(s:stops_str) - 1]
+    if strchars(s:stops_str) > 0
+        let ch = s:stops_str[strchars(s:stops_str) - 1]
         "remove useless symbol from stack (or end of opened tag)
         if ch == '_' || ch == 'e'
             "if this is end of opened tag then save end position to the head of tag
@@ -86,7 +86,7 @@ function! s:GetFromStack()
             if ch == 'e'
                 "first of all we find head of tag 't'
                 "it always present in the stask if we have 'e'
-                let pos = strlen(s:stops_str) - 2
+                let pos = strchars(s:stops_str) - 2
                 while 1
                     let ch = s:stops_str[pos]
                     if ch == 't' | break | endif
@@ -123,7 +123,7 @@ endfunction
 function! s:ReplaceAll(source, regex)
     let result = a:source
     while 1
-        let str = substitute(result, a:regex, '\=repeat("_", strlen(submatch(1)))', 'g')
+        let str = substitute(result, a:regex, '\=repeat("_", strchars(submatch(1)))', 'g')
         if str == result
             break
         endif
@@ -134,13 +134,22 @@ endfunction
 
 "replace cursor position to new position
 function! s:GoTo(line, col)
-    "execute "normal! \e" . a:line . "G" . a:col . "|"
     let col = a:col - 1
     if col == 0
       execute "normal! \e" . a:line . "G0"
     else
       execute "normal! \e" . a:line . "G0" . col . "l"
     endif
+endfunction
+
+function! s:GetCharByPosition(str, pos)
+  let l = strchars(a:str)
+  let rest = l - a:pos - 1
+  if a:pos < 0 || rest < 0
+    return ''
+  else
+    return substitute(a:str, '^.\{' . a:pos . '}\(.\).\{' . rest . '}', '\1', 'g')
+  end
 endfunction
 
 "apply select/delete etc. e.g. run di" or va(
@@ -156,7 +165,7 @@ function! s:ApplyCommand(type, mod, symbol)
             if selection[0] != a:symbol
                 execute "normal! \egvof" . a:symbol . "o"
             endif
-            if selection[strlen(selection) - 1] != a:symbol
+            if selection[strchars(selection) - 1] != a:symbol
                 execute "normal! gvF" . a:symbol
             endif
         endif
@@ -170,9 +179,9 @@ endfunction
 function! s:SmartPairs(type, mod, ...)
     if a:0 > 0
         let str = getline(a:1)
-        let cur = len(str)
+        let cur = strchars(str)
     else
-        let cur    = col('.') - 1
+        let cur    = virtcol('.') - 1
         let str    = getline('.')
         let s:line = line('.')
         let s:start_line = s:line
@@ -187,34 +196,36 @@ function! s:SmartPairs(type, mod, ...)
         if exists('s:laststop') | unlet s:laststop | endif
         if exists('s:lastselected') | unlet s:lastselected | endif
     endif
-    let str = str[:cur - 1]
+    "let str = substitute(str, '.\{1}$', '', 'g')
     "remove all escaped symbols from line
     let str = substitute(str, '\\.', '__', 'g')
 
     "and now process prepared line 
     while cur > 0
         let cur = cur - 1
-        let ch = str[cur]
+        let ch = s:GetCharByPosition(str, cur)
         "skip if current symbol isn't a target
         if index(s:all_targets, ch) < 0
             continue
         endif
 
+        let prev = s:GetCharByPosition(str, cur - 1)
+        let next = s:GetCharByPosition(str, cur + 1)
         "skip => (ruby)
-        if ch == '>' && cur > 0 && str[cur - 1] == '='
+        if ch == '>' && cur > 0 && prev == '='
             continue
         endif
 
         "skip << (ruby)
-        if ch == '<' && cur > 0 && (str[cur - 1] == '<' || str[cur + 1] == '<')
+        if ch == '<' && cur > 0 && (prev == '<' || next == '<')
             continue
         endif
 
         "workaround for tags <div></div> -> <...> c...>
         "                    <br/> -> <...b
-        if ch == '>' && cur > 0 && str[cur - 1] == '/'
+        if ch == '>' && cur > 0 && prev == '/'
             let ch = 'b'
-        elseif ch == '<' && str[cur + 1] == '/' 
+        elseif ch == '<' && next == '/' 
             let ch = 'c'
         endif
         call s:InsertToStack(ch, cur + 1)
@@ -235,10 +246,10 @@ function! s:SmartPairs(type, mod, ...)
     let s:stops_str = s:ReplaceAll(s:stops_str, '\(<.\{-}b\)')
     " replace all opened tags to t___e
     " note: save end of tag as 'e' to fix vim wrong selection 
+    let s:stops_str = substitute(s:stops_str, '\(<.\{-}>\)', '\="t".repeat("_", strchars(submatch(1)) - 2)."e"', 'g')
     " (see tests #43-#44)
-    let s:stops_str = substitute(s:stops_str, '\(<.\{-}>\)', '\="t".repeat("_", strlen(submatch(1)) - 2)."e"', 'g')
     " replace all closed tags to r____ ('c' is '</')
-    let s:stops_str = substitute(s:stops_str, '\(c.\{-}>\)', '\="r".repeat("_", strlen(submatch(1)) - 1)', 'g')
+    let s:stops_str = substitute(s:stops_str, '\(c.\{-}>\)', '\="r".repeat("_", strchars(submatch(1)) - 1)', 'g')
     " replace all matched tags <...>...</...> e.g. <div>...</div>
     let s:stops_str = s:ReplaceAll(s:stops_str, '\(t[^t]\{-}e[^e]\{-}r\)')
     call s:ApplyPairs()
@@ -248,7 +259,7 @@ endfunction
 function! s:ApplyPairs()
     "get first unpair symbol from stack
     let stop = s:GetFromStack()
-    let current_position = { 'line': line('.'), 'col': col('.') }
+    let current_position = { 'line': line('.'), 'col': virtcol('.') }
  
     "if this is opened symbol e.g. (, [, {
     if type(stop) == type({}) && (has_key(s:targets, stop.symbol) || stop.symbol == 't')
@@ -269,7 +280,7 @@ function! s:ApplyPairs()
         "cases special trick: if after changes cursor is placed before
         "end of tag (<div _>) then last operation was wrong
         let ln = line('.')
-        let col = col('.')
+        let col = virtcol('.')
         if !status || ((stop.symbol != 't' && stop.line == ln && stop.col == col && line == getline('.'))
             \ || (stop.symbol == 't' && (stop.end_line > ln || (stop.end_line == ln && stop.end_col > col)))) "trick for tags
             "undo last change/delete operation
