@@ -93,6 +93,11 @@ let g:smartpairs_nextpairs_key = 'v'
 "default is 1
 let g:smartpairs_uber_mode = 1
 
+"Start selection from word
+"If there is no regions then select word
+"default is 0
+let g:smartpairs_start_from_word = 1
+
 "Key for running smartpairs in the selection mode
 "for extending selection with IN-mod (like vi")
 "default is 'm'

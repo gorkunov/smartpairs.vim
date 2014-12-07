@@ -86,10 +86,16 @@ the next pairs) >
     let g:smartpairs_nextpairs_key = 'v'
 <
 
-                                                       *'smartpairs_uber_mode'*
+                                                      *'smartpairs_uber_mode'*
 Default: '1'
 Enable uber-mode see |smartpairs-uber-mode| >
     let g:smartpairs_uber_mode = 1
+<
+
+                                                *'smartpairs_start_from_word'*
+Default: '0'
+Start selection from word. If there is no regions then select word. >
+    let g:smartpairs_start_from_word = 1
 <
 
                                                 *'smartpairs_nextpairs_key_i'*

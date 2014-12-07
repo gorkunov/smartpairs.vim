@@ -19,9 +19,15 @@ if !exists('g:smartpairs_maxdepth')
 end
 
 "combinate 'i' and 'a' modes in one way
-"disabled by default
+"enabled by default
 if !exists('g:smartpairs_uber_mode')
     let g:smartpairs_uber_mode = 1
+end
+
+"start selection from word
+"disabled by default
+if !exists('g:smartpairs_start_from_word')
+    let g:smartpairs_start_from_word = 0
 end
 
 "define all searchable symbols aka *pairs*
@@ -181,6 +187,17 @@ function! s:SmartPairs(type, mod, ...)
         let str = getline(a:1)
         let cur = strchars(str)
     else
+        if g:smartpairs_start_from_word
+            let current_selection = s:GetSelection()
+            if strchars(current_selection) == 1
+                execute "normal! \e". a:type . a:mod . "w"
+                let current_selection = s:GetSelection()
+                if strchars(current_selection) > 1
+                    return
+                endif
+            endif
+        endif
+
         let cur    = virtcol('.') - 1
         let str    = getline('.')
         let s:line = line('.')
