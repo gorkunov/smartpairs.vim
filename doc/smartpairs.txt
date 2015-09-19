@@ -115,7 +115,7 @@ selection with ABOVE-mod (like va") >
                                                      *'smartpairs_revert_key'*
 Default: '<C-V>'
 Cancel last smartpairs selection >
-    let g:smartpairs_nextpairs_key_a = '<C-V>'
+    let g:smartpairs_revert_key = '<C-V>'
 <
                                                        *'smartpairs_maxdepth'*
 Default: 20
