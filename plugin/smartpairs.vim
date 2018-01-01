@@ -187,17 +187,6 @@ function! s:SmartPairs(type, mod, ...)
         let str = getline(a:1)
         let cur = strchars(str)
     else
-        if g:smartpairs_start_from_word
-            let current_selection = s:GetSelection()
-            if strchars(current_selection) == 1
-                execute "normal! \e". a:type . a:mod . "w"
-                let current_selection = s:GetSelection()
-                if strchars(current_selection) > 1
-                    return
-                endif
-            endif
-        endif
-
         let cur    = virtcol('.') - 1
         let str    = getline('.')
         let s:line = line('.')
@@ -381,6 +370,13 @@ function! s:NextPairs(...)
             call s:ApplyPairs()
         endif
     else
+        if g:smartpairs_start_from_word && g:smartpairs_uber_mode && strchars(selected) == 1
+            execute "normal! \eviw"
+            let selected = s:GetSelection()
+            if strchars(selected) > 1
+                return
+            endif
+        endif
         "else run new selection for current line
         let mod = a:0 > 0 ? a:1 : 'i'
         call s:SmartPairs('v', mod)
